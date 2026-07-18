@@ -8,6 +8,7 @@ export type InviteRow = {
   slug: string;
   title: string;
   message: string | null;
+  invitedBy: string | null; // "noivo" | "noiva"
   guests: { id: number; name: string; confirmed: boolean | null }[];
 };
 
@@ -21,17 +22,20 @@ function isConfirmed(inv: InviteRow) {
 export default function InviteManager({ invites }: { invites: InviteRow[] }) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("todos");
+  const [who, setWho] = useState<"todos" | "noivo" | "noiva">("todos");
   const [title, setTitle] = useState("");
+  const [invitedBy, setInvitedBy] = useState<"noivo" | "noiva" | "">("");
   const [names, setNames] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState<number | null>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
 
-  const confirmadas = invites.filter(isConfirmed);
-  const pendentes = invites.filter((i) => !isConfirmed(i));
+  const byWho = who === "todos" ? invites : invites.filter((i) => i.invitedBy === who);
+  const confirmadas = byWho.filter(isConfirmed);
+  const pendentes = byWho.filter((i) => !isConfirmed(i));
   const shown =
-    tab === "confirmados" ? confirmadas : tab === "pendentes" ? pendentes : invites;
+    tab === "confirmados" ? confirmadas : tab === "pendentes" ? pendentes : byWho;
 
   async function create(e: React.FormEvent) {
     e.preventDefault();
@@ -45,7 +49,7 @@ export default function InviteManager({ invites }: { invites: InviteRow[] }) {
       const res = await fetch("/api/invites", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, guests }),
+        body: JSON.stringify({ title, guests, invitedBy: invitedBy || null }),
       });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error || "Erro ao criar o convite.");
@@ -100,6 +104,33 @@ export default function InviteManager({ invites }: { invites: InviteRow[] }) {
           />
         </div>
         <div className="flex flex-col gap-2">
+          <span className="label">Quem convidou</span>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setInvitedBy((v) => (v === "noivo" ? "" : "noivo"))}
+              className={`py-2 border label transition-colors ${
+                invitedBy === "noivo"
+                  ? "bg-tiffany text-ink border-tiffany"
+                  : "bg-transparent text-ink border-line hover:border-ink"
+              }`}
+            >
+              Noivo
+            </button>
+            <button
+              type="button"
+              onClick={() => setInvitedBy((v) => (v === "noiva" ? "" : "noiva"))}
+              className={`py-2 border label transition-colors ${
+                invitedBy === "noiva"
+                  ? "bg-tiffany text-ink border-tiffany"
+                  : "bg-transparent text-ink border-line hover:border-ink"
+              }`}
+            >
+              Noiva
+            </button>
+          </div>
+        </div>
+        <div className="flex flex-col gap-2">
           <label className="label" htmlFor="inv-names">
             Convidados (um por linha)
           </label>
@@ -125,10 +156,10 @@ export default function InviteManager({ invites }: { invites: InviteRow[] }) {
 
       {/* lista de convites */}
       <div className="flex flex-col gap-4">
-        {/* abas */}
+        {/* abas de status */}
         <div className="flex flex-wrap gap-2">
           <TabButton active={tab === "todos"} onClick={() => setTab("todos")}>
-            Todos ({invites.length})
+            Todos ({byWho.length})
           </TabButton>
           <TabButton
             active={tab === "confirmados"}
@@ -138,6 +169,20 @@ export default function InviteManager({ invites }: { invites: InviteRow[] }) {
           </TabButton>
           <TabButton active={tab === "pendentes"} onClick={() => setTab("pendentes")}>
             Faltam confirmar ({pendentes.length})
+          </TabButton>
+        </div>
+
+        {/* filtro por quem convidou */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="label text-ink-soft mr-1">Quem convidou:</span>
+          <TabButton active={who === "todos"} onClick={() => setWho("todos")}>
+            Todos
+          </TabButton>
+          <TabButton active={who === "noivo"} onClick={() => setWho("noivo")}>
+            Noivo ({invites.filter((i) => i.invitedBy === "noivo").length})
+          </TabButton>
+          <TabButton active={who === "noiva"} onClick={() => setWho("noiva")}>
+            Noiva ({invites.filter((i) => i.invitedBy === "noiva").length})
           </TabButton>
         </div>
 
@@ -162,7 +207,20 @@ export default function InviteManager({ invites }: { invites: InviteRow[] }) {
             <div key={inv.id} className="border border-line/70 bg-cream-soft p-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="display text-xl">{inv.title}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="display text-xl">{inv.title}</p>
+                    {inv.invitedBy && (
+                      <span
+                        className={`px-2 py-0.5 text-xs label border ${
+                          inv.invitedBy === "noivo"
+                            ? "border-tiffany-deep bg-tiffany/30"
+                            : "border-accent/60 bg-accent/10"
+                        }`}
+                      >
+                        {inv.invitedBy === "noivo" ? "Noivo" : "Noiva"}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-ink-soft text-sm mt-1">
                     /convite/{inv.slug} — {going} confirmado{going === 1 ? "" : "s"} ·{" "}
                     {notGoing} não {notGoing === 1 ? "vai" : "vão"} · {pending} pendente

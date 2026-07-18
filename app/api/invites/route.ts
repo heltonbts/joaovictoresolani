@@ -20,6 +20,8 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const title = String(body.title ?? "").trim().slice(0, 120);
+    const invitedByRaw = String(body.invitedBy ?? "");
+    const invitedBy = ["noivo", "noiva"].includes(invitedByRaw) ? invitedByRaw : null;
     const guests: string[] = (Array.isArray(body.guests) ? body.guests : [])
       .map((g: unknown) => String(g ?? "").trim().slice(0, 80))
       .filter(Boolean);
@@ -37,7 +39,8 @@ export async function POST(req: Request) {
     for (let n = 2; !invite; n++) {
       try {
         const [row] = await sql`
-          INSERT INTO invites (slug, title) VALUES (${slug}, ${title}) RETURNING id
+          INSERT INTO invites (slug, title, invited_by)
+          VALUES (${slug}, ${title}, ${invitedBy}) RETURNING id
         `;
         invite = row as { id: number };
       } catch {

@@ -59,9 +59,13 @@ async function main() {
       slug       TEXT UNIQUE NOT NULL,
       title      TEXT NOT NULL,
       message    TEXT,
+      invited_by TEXT,
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
   `;
+
+  // migração para bancos criados antes da tag de quem convidou
+  await sql`ALTER TABLE invites ADD COLUMN IF NOT EXISTS invited_by TEXT`;
 
   await sql`
     CREATE TABLE IF NOT EXISTS invite_guests (

@@ -37,7 +37,7 @@ export default async function DashboardPage() {
   `;
 
   const inviteRows = await sql`
-    SELECT i.id, i.slug, i.title, i.message,
+    SELECT i.id, i.slug, i.title, i.message, i.invited_by,
            g.id AS guest_id, g.name AS guest_name, g.confirmed
     FROM invites i
     LEFT JOIN invite_guests g ON g.invite_id = i.id
@@ -47,7 +47,14 @@ export default async function DashboardPage() {
   for (const r of inviteRows) {
     let inv = inviteMap.get(r.id);
     if (!inv) {
-      inv = { id: r.id, slug: r.slug, title: r.title, message: r.message, guests: [] };
+      inv = {
+        id: r.id,
+        slug: r.slug,
+        title: r.title,
+        message: r.message,
+        invitedBy: r.invited_by,
+        guests: [],
+      };
       inviteMap.set(r.id, inv);
     }
     if (r.guest_id) {
