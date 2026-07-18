@@ -8,7 +8,18 @@ function pad(n: number) {
   return String(n).padStart(2, "0");
 }
 
-export default function EnvelopeInvite() {
+export type InviteInfo = {
+  slug: string;
+  title: string;
+  guests: string[];
+};
+
+function listNames(names: string[]) {
+  if (names.length <= 1) return names.join("");
+  return `${names.slice(0, -1).join(", ")} e ${names[names.length - 1]}`;
+}
+
+export default function EnvelopeInvite({ invite }: { invite?: InviteInfo }) {
   const [open, setOpen] = useState(false);
   const [hideEnv, setHideEnv] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
@@ -58,7 +69,7 @@ export default function EnvelopeInvite() {
       {/* ======= ENVELOPE ======= */}
       {!hideEnv && (
         <div id="envelope-screen" ref={envScreenRef}>
-          <p className="call">Você está convidado</p>
+          <p className="call">{invite ? invite.title : "Você está convidado"}</p>
           <div
             className={`envelope${open ? " open" : ""}`}
             onClick={abrir}
@@ -101,6 +112,18 @@ export default function EnvelopeInvite() {
             </div>
           </div>
 
+          {invite && (
+            <div className="bloco">
+              <p className="save">Com carinho, para</p>
+              <p className="data-grande">{invite.title}</p>
+              {invite.guests.length > 0 && (
+                <p className="data-sub">{listNames(invite.guests)}</p>
+              )}
+            </div>
+          )}
+
+          {invite && <div className="divisor">♥</div>}
+
           <div className="bloco">
             <p className="verso">
               &ldquo;Portanto, o que Deus uniu, ninguém o separe.&rdquo;
@@ -138,7 +161,10 @@ export default function EnvelopeInvite() {
           <div className="divisor">♥</div>
 
           <div className="acoes">
-            <Link className="acao" href="/confirmar">
+            <Link
+              className="acao"
+              href={invite ? `/confirmar?convite=${invite.slug}` : "/confirmar"}
+            >
               <div className="circ">💌</div>
               <span>Confirmar presença</span>
             </Link>

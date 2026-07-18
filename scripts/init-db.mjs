@@ -53,6 +53,27 @@ async function main() {
   // migração para bancos criados antes do presente personalizado
   await sql`ALTER TABLE gift_payments ADD COLUMN IF NOT EXISTS custom_title TEXT`;
 
+  await sql`
+    CREATE TABLE IF NOT EXISTS invites (
+      id         SERIAL PRIMARY KEY,
+      slug       TEXT UNIQUE NOT NULL,
+      title      TEXT NOT NULL,
+      message    TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+  `;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS invite_guests (
+      id           SERIAL PRIMARY KEY,
+      invite_id    INTEGER NOT NULL REFERENCES invites(id) ON DELETE CASCADE,
+      name         TEXT NOT NULL,
+      confirmed    BOOLEAN,
+      confirmed_at TIMESTAMPTZ,
+      sort_order   INTEGER NOT NULL DEFAULT 0
+    );
+  `;
+
   const [{ count }] = await sql`SELECT COUNT(*)::int AS count FROM gifts`;
   if (count === 0) {
     console.log("Populando lista de presentes inicial...");

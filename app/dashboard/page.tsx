@@ -3,6 +3,7 @@ import { sql } from "@/lib/db";
 import { isAuthed } from "@/lib/auth";
 import LoginForm from "@/components/LoginForm";
 import LogoutButton from "@/components/LogoutButton";
+import InviteManager, { type InviteRow } from "@/components/InviteManager";
 
 export const dynamic = "force-dynamic";
 
@@ -35,17 +36,41 @@ export default async function DashboardPage() {
     ORDER BY p.created_at DESC
   `;
 
+  const inviteRows = await sql`
+    SELECT i.id, i.slug, i.title, i.message,
+           g.id AS guest_id, g.name AS guest_name, g.confirmed
+    FROM invites i
+    LEFT JOIN invite_guests g ON g.invite_id = i.id
+    ORDER BY i.created_at DESC, g.sort_order, g.id
+  `;
+  const inviteMap = new Map<number, InviteRow>();
+  for (const r of inviteRows) {
+    let inv = inviteMap.get(r.id);
+    if (!inv) {
+      inv = { id: r.id, slug: r.slug, title: r.title, message: r.message, guests: [] };
+      inviteMap.set(r.id, inv);
+    }
+    if (r.guest_id) {
+      inv.guests.push({ id: r.guest_id, name: r.guest_name, confirmed: r.confirmed });
+    }
+  }
+  const invites = Array.from(inviteMap.values());
+  const allGuests = invites.flatMap((i) => i.guests);
+  const guestsGoing = allGuests.filter((g) => g.confirmed === true).length;
+  const guestsNotGoing = allGuests.filter((g) => g.confirmed === false).length;
+
   const confirmados = rsvps.filter((r) => r.attending);
   const recusas = rsvps.filter((r) => !r.attending);
-  const totalPessoas = confirmados.reduce((s, r) => s + 1 + (r.guests || 0), 0);
+  const totalPessoas =
+    confirmados.reduce((s, r) => s + 1 + (r.guests || 0), 0) + guestsGoing;
 
   const approved = payments.filter((p) => p.status === "approved");
   const arrecadado = approved.reduce((s, p) => s + (p.amount_cents || 0), 0);
 
   const stats = [
-    { label: "Confirmados", value: confirmados.length },
+    { label: "Confirmados", value: confirmados.length + guestsGoing },
     { label: "Total de pessoas", value: totalPessoas },
-    { label: "Não vão", value: recusas.length },
+    { label: "Não vão", value: recusas.length + guestsNotGoing },
     { label: "Presentes pagos", value: approved.length },
     { label: "Arrecadado", value: formatBRL(arrecadado) },
   ];
@@ -74,6 +99,16 @@ export default async function DashboardPage() {
           </div>
         ))}
       </div>
+
+      {/* convites nominais */}
+      <section className="mb-16">
+        <h2 className="display text-2xl mb-2">Convites</h2>
+        <p className="text-ink-soft text-sm mb-5">
+          Crie um convite por família ou grupo e envie o link personalizado. Cada
+          pessoa é confirmada individualmente.
+        </p>
+        <InviteManager invites={invites} />
+      </section>
 
       {/* confirmações */}
       <section className="mb-16">

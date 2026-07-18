@@ -11,8 +11,7 @@ type Item = {
   amountCents?: number;
 };
 
-const CUSTOM_MIN_CENTS = 100; // R$ 1,00
-const CUSTOM_MAX_CENTS = 5_000_000; // R$ 50.000,00
+const CUSTOM_MIN_CENTS = 100; // R$ 1,00 (mínimo aceito pelo Mercado Pago)
 
 // Cria o pedido (linhas pendentes em gift_payments) e devolve orderId + total.
 // O pagamento em si é processado depois pelo Payment Brick em /api/payment/process.
@@ -45,7 +44,7 @@ export async function POST(req: Request) {
         // presente personalizado: título livre, valor escolhido pelo convidado (com limites)
         const title = String(i.title ?? "").trim().slice(0, 120) || "Presente personalizado";
         const cents = Math.round(Number(i.amountCents));
-        if (!Number.isFinite(cents) || cents < CUSTOM_MIN_CENTS || cents > CUSTOM_MAX_CENTS) {
+        if (!Number.isFinite(cents) || cents < CUSTOM_MIN_CENTS) {
           return NextResponse.json(
             { error: "Valor do presente personalizado inválido (mínimo R$ 1,00)." },
             { status: 400 }
