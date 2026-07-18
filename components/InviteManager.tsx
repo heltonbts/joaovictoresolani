@@ -11,14 +11,27 @@ export type InviteRow = {
   guests: { id: number; name: string; confirmed: boolean | null }[];
 };
 
+type Tab = "todos" | "confirmados" | "pendentes";
+
+// família "confirmada" = todos os convidados já responderam (vai ou não vai)
+function isConfirmed(inv: InviteRow) {
+  return inv.guests.length > 0 && inv.guests.every((g) => g.confirmed !== null);
+}
+
 export default function InviteManager({ invites }: { invites: InviteRow[] }) {
   const router = useRouter();
+  const [tab, setTab] = useState<Tab>("todos");
   const [title, setTitle] = useState("");
   const [names, setNames] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState<number | null>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
+
+  const confirmadas = invites.filter(isConfirmed);
+  const pendentes = invites.filter((i) => !isConfirmed(i));
+  const shown =
+    tab === "confirmados" ? confirmadas : tab === "pendentes" ? pendentes : invites;
 
   async function create(e: React.FormEvent) {
     e.preventDefault();
@@ -112,13 +125,36 @@ export default function InviteManager({ invites }: { invites: InviteRow[] }) {
 
       {/* lista de convites */}
       <div className="flex flex-col gap-4">
+        {/* abas */}
+        <div className="flex flex-wrap gap-2">
+          <TabButton active={tab === "todos"} onClick={() => setTab("todos")}>
+            Todos ({invites.length})
+          </TabButton>
+          <TabButton
+            active={tab === "confirmados"}
+            onClick={() => setTab("confirmados")}
+          >
+            Confirmados ({confirmadas.length})
+          </TabButton>
+          <TabButton active={tab === "pendentes"} onClick={() => setTab("pendentes")}>
+            Faltam confirmar ({pendentes.length})
+          </TabButton>
+        </div>
+
         {invites.length === 0 && (
           <p className="text-ink-soft border border-line/70 p-6">
             Nenhum convite criado ainda. Crie o primeiro ao lado e envie o link
             para a família ou grupo.
           </p>
         )}
-        {invites.map((inv) => {
+        {invites.length > 0 && shown.length === 0 && (
+          <p className="text-ink-soft border border-line/70 p-6">
+            {tab === "confirmados"
+              ? "Nenhuma família confirmou todo mundo ainda."
+              : "Todas as famílias já responderam. 🎉"}
+          </p>
+        )}
+        {shown.map((inv) => {
           const going = inv.guests.filter((g) => g.confirmed === true).length;
           const notGoing = inv.guests.filter((g) => g.confirmed === false).length;
           const pending = inv.guests.length - going - notGoing;
@@ -173,5 +209,28 @@ export default function InviteManager({ invites }: { invites: InviteRow[] }) {
         })}
       </div>
     </div>
+  );
+}
+
+function TabButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-4 py-2 border label transition-colors ${
+        active
+          ? "bg-ink text-cream border-ink"
+          : "bg-transparent text-ink border-line hover:border-ink"
+      }`}
+    >
+      {children}
+    </button>
   );
 }
