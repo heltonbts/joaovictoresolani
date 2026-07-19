@@ -5,9 +5,10 @@ import { siteUrl } from "@/lib/config";
 
 // Recebe o formData do Payment Brick (cartão ou PIX) e cria o pagamento no MP.
 export async function POST(req: Request) {
+  let orderId = "";
   try {
     const body = await req.json();
-    const orderId = String(body.orderId ?? "").trim();
+    orderId = String(body.orderId ?? "").trim();
     const formData = body.formData;
 
     if (!orderId || !formData || typeof formData !== "object") {
@@ -73,9 +74,20 @@ export async function POST(req: Request) {
       ticketUrl: tx?.ticket_url ?? null,
     });
   } catch (e) {
-    console.error("Erro ao processar pagamento:", e);
+    // o SDK do MP guarda o motivo real em `cause`; sem isso todo erro vira um
+    // 500 opaco e fica impossivel saber o que o MP recusou
+    const err = e as { message?: string; status?: number; cause?: unknown };
+    const detail = err?.cause ? JSON.stringify(err.cause) : err?.message;
+    console.error("Erro ao processar pagamento:", {
+      orderId,
+      mpStatus: err?.status,
+      detail,
+    });
     return NextResponse.json(
-      { error: "Não foi possível processar o pagamento. Tente novamente." },
+      {
+        error: "Não foi possível processar o pagamento. Tente novamente.",
+        detail: detail ?? null,
+      },
       { status: 500 }
     );
   }
