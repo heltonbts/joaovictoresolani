@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Montserrat, Great_Vibes } from "next/font/google";
 import "./globals.css";
-import { wedding } from "@/lib/config";
+import { siteUrl, wedding } from "@/lib/config";
 
 const cormorant = Cormorant_Garamond({
   variable: "--font-cormorant",
@@ -28,9 +28,7 @@ const siteTitle = `${wedding.groom} & ${wedding.bride} — ${wedding.dateLabel}`
 const siteDescription = `Convite de casamento de ${wedding.groom} e ${wedding.bride}. ${wedding.dateLabel}.`;
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3001"
-  ),
+  metadataBase: new URL(siteUrl()),
   title: siteTitle,
   description: siteDescription,
   openGraph: {

@@ -35,3 +35,18 @@ export const wedding = {
   },
   rsvpDeadlineLabel: "30 de Setembro de 2026",
 } as const;
+
+// URL pública do site. Usada no og:image e na notification_url do Mercado
+// Pago — ambos precisam de uma URL absoluta e acessível de fora.
+// NEXT_PUBLIC_BASE_URL só vale se for https: um valor de dev sobrando no
+// ambiente (http://localhost:3000) quebraria os dois silenciosamente.
+export function siteUrl(): string {
+  const configured = process.env.NEXT_PUBLIC_BASE_URL;
+  if (configured?.startsWith("https://")) return configured.replace(/\/$/, "");
+
+  // injetada automaticamente pela Vercel, sem protocolo
+  const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  if (vercel) return `https://${vercel}`;
+
+  return "http://localhost:3000";
+}

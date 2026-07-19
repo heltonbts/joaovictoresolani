@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db";
 import { getPaymentClient } from "@/lib/mp";
+import { siteUrl } from "@/lib/config";
 
 // Recebe o formData do Payment Brick (cartão ou PIX) e cria o pagamento no MP.
 export async function POST(req: Request) {
@@ -37,7 +38,7 @@ export async function POST(req: Request) {
 
     // MP exige que notification_url seja uma URL pública HTTPS — em dev
     // (localhost) o create falha com erro 4020 se ela for enviada.
-    const base = process.env.NEXT_PUBLIC_BASE_URL || "";
+    const base = siteUrl();
     const notificationUrl = base.startsWith("https://")
       ? `${base}/api/payment/webhook`
       : undefined;
