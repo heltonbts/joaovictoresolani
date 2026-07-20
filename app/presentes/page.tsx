@@ -28,7 +28,11 @@ export default async function PresentesPage() {
         </h1>
         <p className="text-ink-soft mt-4">
           Sua presença já é o nosso maior presente. Mas, se quiser nos mimar,
-          escolha uma cota abaixo — o pagamento é por PIX, rápido e seguro.
+          escolha uma cota abaixo — o pagamento é por PIX ou cartão, rápido e
+          seguro.
+        </p>
+        <p className="label mt-4">
+          💳 No cartão de crédito você pode parcelar em até 12x
         </p>
       </div>
 
