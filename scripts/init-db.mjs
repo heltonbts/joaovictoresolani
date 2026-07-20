@@ -90,9 +90,10 @@ async function main() {
       ["Vale night com o sogro", "Uma rodada por conta de vocês pra animar a resenha do genro com o sogro. 😄", "/gifts/sogro.webp", 10000, "Especial", 4],
       ["Skincare para o casal", "Uma tarde de autocuidado a dois — máscaras, risadas e pele renovada.", "/gifts/skincare.webp", 15000, "Especial", 5],
       ["Uma rodada de pôquer", "Fichas por conta de vocês pra uma noite de pôquer do noivo. 🃏", "/gifts/poker.webp", 18000, "Especial", 6],
-      ["Creche da Paçoca", "Uma temporada na creche para a nossa Paçoca enquanto curtimos a lua de mel.", "/gifts/pacoca.webp", 35000, "Especial", 7],
+      ["Creche do Paçoca", "Uma temporada na creche para o nosso Paçoca enquanto curtimos a lua de mel.", "/gifts/pacoca.webp", 35000, "Especial", 7],
       ["Um Botox para o JV", "Ajude a suavizar as expressões do noivo. Resultados não garantidos. 😄", "/gifts/botox.webp", 80000, "Especial", 8],
       ["Uma semana sem a Solani brigar com o JV", "Cota premium e por tempo limitado: sete dias de paz absoluta no relacionamento. 😄", "/gifts/solani.webp", 100000, "Especial", 9],
+      ["Águas de coco da lua de mel", "Aquela água de coco gelada depois da corrida — agora com vista de lua de mel. 🥥", "/gifts/coco.webp", 10500, "Lua de Mel", 3],
     ];
     for (const [title, description, image, price, category, order] of seed) {
       await sql`
@@ -101,6 +102,23 @@ async function main() {
       `;
     }
   }
+
+  // Paçoca é macho — corrige bancos criados com o título no feminino
+  await sql`
+    UPDATE gifts
+    SET title = 'Creche do Paçoca',
+        description = 'Uma temporada na creche para o nosso Paçoca enquanto curtimos a lua de mel.'
+    WHERE title = 'Creche da Paçoca'
+  `;
+
+  // presente adicionado depois do seed inicial
+  await sql`
+    INSERT INTO gifts (title, description, image_url, price_cents, category, sort_order)
+    SELECT 'Águas de coco da lua de mel',
+           'Aquela água de coco gelada depois da corrida — agora com vista de lua de mel. 🥥',
+           '/gifts/coco.webp', 10500, 'Lua de Mel', 10500
+    WHERE NOT EXISTS (SELECT 1 FROM gifts WHERE title = 'Águas de coco da lua de mel')
+  `;
 
   console.log("Pronto! Banco configurado.");
 }

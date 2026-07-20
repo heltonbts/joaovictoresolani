@@ -160,6 +160,15 @@ export default function EnvelopeInvite({ invite }: { invite?: InviteInfo }) {
 
           <div className="divisor">♥</div>
 
+          <div className="bloco">
+            <p className="verso">
+              &ldquo;Quando for a hora certa, eu, o Senhor, farei acontecer.&rdquo;
+            </p>
+            <p className="verso-ref">Isaías 60:22</p>
+          </div>
+
+          <div className="divisor">♥</div>
+
           <div className="acoes">
             <Link
               className="acao"
