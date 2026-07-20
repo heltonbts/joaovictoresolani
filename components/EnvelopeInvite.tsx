@@ -126,9 +126,9 @@ export default function EnvelopeInvite({ invite }: { invite?: InviteInfo }) {
 
           <div className="bloco">
             <p className="verso">
-              &ldquo;Portanto, o que Deus uniu, ninguém o separe.&rdquo;
+              &ldquo;Quando for a hora certa, eu, o Senhor, farei acontecer.&rdquo;
             </p>
-            <p className="verso-ref">Mateus 19:6</p>
+            <p className="verso-ref">Isaías 60:22</p>
           </div>
 
           <div className="divisor">♥</div>
@@ -156,15 +156,6 @@ export default function EnvelopeInvite({ invite }: { invite?: InviteInfo }) {
               <div className="cd-num">{pad(cd.s)}</div>
               <div className="cd-lbl">seg</div>
             </div>
-          </div>
-
-          <div className="divisor">♥</div>
-
-          <div className="bloco">
-            <p className="verso">
-              &ldquo;Quando for a hora certa, eu, o Senhor, farei acontecer.&rdquo;
-            </p>
-            <p className="verso-ref">Isaías 60:22</p>
           </div>
 
           <div className="divisor">♥</div>
